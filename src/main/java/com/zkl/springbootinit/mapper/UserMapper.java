@@ -1,6 +1,7 @@
 package com.zkl.springbootinit.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.zkl.springbootinit.model.entity.User;
 
 /**
 * @author a1005

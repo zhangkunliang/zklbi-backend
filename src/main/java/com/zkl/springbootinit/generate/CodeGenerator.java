@@ -29,7 +29,7 @@ public class CodeGenerator {
      */
     public static void main(String[] args) throws TemplateException, IOException {
         // 指定生成参数
-        String packageName = "com. zkl.springbootinit";
+        String packageName = "com.zkl.springbootinit";
         String dataName = "用户评论";
         String dataKey = "userComment";
         String upperDataKey = "UserComment";

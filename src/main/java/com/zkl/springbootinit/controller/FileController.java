@@ -8,13 +8,13 @@ import com.zkl.springbootinit.constant.FileConstant;
 import com.zkl.springbootinit.exception.BusinessException;
 import com.zkl.springbootinit.manager.CosManager;
 import com.zkl.springbootinit.model.dto.file.UploadFileRequest;
+import com.zkl.springbootinit.model.entity.User;
 import com.zkl.springbootinit.model.enums.FileUploadBizEnum;
 import com.zkl.springbootinit.service.UserService;
 import java.io.File;
 import java.util.Arrays;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * 文件接口
  *
-  
+ * @author <a href="https://github.com/lizkl">程序员鱼皮</a>
+ * @from <a href="https://zkl.icu">编程导航知识星球</a>
  */
 @RestController
 @RequestMapping("/file")

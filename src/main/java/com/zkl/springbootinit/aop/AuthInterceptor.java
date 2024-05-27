@@ -3,6 +3,7 @@ package com.zkl.springbootinit.aop;
 import com.zkl.springbootinit.annotation.AuthCheck;
 import com.zkl.springbootinit.common.ErrorCode;
 import com.zkl.springbootinit.exception.BusinessException;
+import com.zkl.springbootinit.model.entity.User;
 import com.zkl.springbootinit.model.enums.UserRoleEnum;
 import com.zkl.springbootinit.service.UserService;
 import org.aspectj.lang.ProceedingJoinPoint;
