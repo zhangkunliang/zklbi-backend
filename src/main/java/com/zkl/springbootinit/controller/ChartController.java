@@ -1,5 +1,6 @@
 package com.zkl.springbootinit.controller;
 
+import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
@@ -13,6 +14,7 @@ import com.zkl.springbootinit.constant.UserConstant;
 import com.zkl.springbootinit.exception.BusinessException;
 import com.zkl.springbootinit.exception.ThrowUtils;
 import com.zkl.springbootinit.manager.AiManager;
+import com.zkl.springbootinit.manager.RedisLimiterManager;
 import com.zkl.springbootinit.model.dto.chart.*;
 import com.zkl.springbootinit.model.entity.Chart;
 import com.zkl.springbootinit.model.entity.User;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -50,12 +53,15 @@ public class ChartController {
     @Resource
     private AiManager aiManager;
 
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
     private final static Gson GSON = new Gson();
 
     // region 增删改查
 
     /**
      * 创建
+     *
      * @param chartAddRequest
      * @param request
      * @return
@@ -211,6 +217,7 @@ public class ChartController {
         boolean result = chartService.updateById(chart);
         return ResultUtils.success(result);
     }
+
     /**
      * 智能分析（同步）
      *
@@ -228,7 +235,22 @@ public class ChartController {
         // 校验
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        // 校验文件
+        long size = multipartFile.getSize();
+        String originFileName = multipartFile.getOriginalFilename();
+        // 校验文件大小
+        final long ONE_MB = 1024 * 1024L;
+        ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过1M");
+        //校验文件后缀  aaa.png
+        String suffix = FileUtil.getSuffix(originFileName);
+        final List<String> validFileSuffixList = Arrays.asList("png","jpg","svg","webp","jepg");
+        // 如果suffix的后缀不在List的范围内，抛出异常，并提示‘文件后缀非法’
+        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
+
+        // 通过response对象拿到用户id（必须登录才能使用）
         User loginUser = userService.getLoginUser(request);
+        // 限流判断
+        redisLimiterManager.doRateLimit("genChartByAi_",loginUser.getId());
         // 无需写 prompt，直接调用现有模型，https://www.yucongming.com，公众号搜【鱼聪明AI】
 //        final String prompt = "你是一个数据分析师和前端开发专家，接下来我会按照以下固定格式给你提供内容：\n" +
 //                "分析需求：\n" +
@@ -289,12 +311,13 @@ public class ChartController {
         return ResultUtils.success(biResponse);
 
     }
-        /**
-         * 获取查询包装类
-         *
-         * @param chartQueryRequest
-         * @return
-         */
+
+    /**
+     * 获取查询包装类
+     *
+     * @param chartQueryRequest
+     * @return
+     */
     private QueryWrapper<Chart> getQueryWrapper(ChartQueryRequest chartQueryRequest) {
         QueryWrapper<Chart> queryWrapper = new QueryWrapper<>();
         if (chartQueryRequest == null) {
@@ -316,7 +339,6 @@ public class ChartController {
                 sortField);
         return queryWrapper;
     }
-
 
 
 }
